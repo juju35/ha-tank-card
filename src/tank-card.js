@@ -17,34 +17,70 @@ const TK_REFRESH = 60 * 60 * 1000;
 const TK_DAY = 24 * 3.6e6;
 
 // ── Banner ───────────────────────────────────────────────────────────────────
-// The illustrated header's scene: 200 × 80, drawn to the banner's right edge. A boiler room's wall and a small window,
-// the tank lying on its two feet, filled to its level with what it holds (its surface sways a little for a liquid), its
-// filler cap and its gauge, the needle at the level. By night (the dark theme) the room is darker.
+// The illustrated header's scene: 200 × 80, drawn to the banner's right edge. A boiler room's wall and a small window
+// (hidden on narrow cards), then the tank of the type, filled to its level with what it holds (the surface of a liquid
+// sways a little): heating oil and propane in a tank lying on its two feet, with its filler cap and its gauge, the needle
+// at the level; pellets in a silo standing on its legs, its cone and its outlet under it; rainwater in a ribbed cistern
+// on its slab, the downpipe coming in at its top and its tap at the bottom. By night (the dark theme) the room is darker.
 const tkScene = ({ night, share, type, animate, uid }) => {
   const s = share == null ? 0 : Math.min(1, Math.max(0, share));
   const [wall, joint] = night ? ["#2c3034", "#363a40"] : ["#efe9df", "#ddd5c8"];
   const body = night ? ["#3d444e", "#59616c"] : ["#eef1f4", "#9aa3ae"];
+  const fill = share == null ? (night ? "#4a515b" : "#d5dae1") : TK_FILL[type];
+  const rows = [20, 32, 44, 56, 68].map((ly) => `<line x1="0" y1="${ly}" x2="200" y2="${ly}"/>`).join("");
+  const stroke = night ? "#555b63" : "#c9ced6";
+  const room = `<rect width="200" height="80" fill="${wall}"/><g stroke="${joint}" stroke-width=".8">${rows}</g>
+    <g class="win"><rect x="8" y="8" width="30" height="24" rx="2" fill="${night ? "#1d2a3a" : "#fff"}" stroke="${stroke}"/><line x1="23" y1="8" x2="23" y2="32" stroke="${stroke}"/></g>`;
+  // A liquid's surface: a wave over the inside's width, swaying when animated.
+  const liquid = (ix, iw, top, bottom) => {
+    const sway = animate && share != null ? `<animateTransform attributeName="transform" type="translate" values="0 0;-12 0;0 0" dur="${TK_LOOP}s" repeatCount="indefinite"/>` : "";
+    const waves = " t24 0".repeat(Math.ceil((iw + 20) / 24));
+    return `<path d="M${ix - 10} ${top} q12 -2.5 24 0${waves} V${bottom + 4} H${ix - 10}Z" fill="${fill}" opacity=".92">${sway}</path>`;
+  };
+  if (type === "pellets") {
+    // The silo: a cylinder with a domed top, its cone and outlet under it, on four legs (two seen).
+    const [x, y, w, h] = [96, 6, 44, 48];
+    // The inside runs down into the cone: an empty silo shows no pellets in it.
+    const [ix, iy, iw, ih] = [x + 2, y + 2, w - 4, h + 10];
+    const top = iy + ih * (1 - s);
+    const pile = `<path d="M${ix} ${top + 3} Q${ix + iw / 2} ${top - 4} ${ix + iw} ${top + 3} V${y + h + 14} H${ix}Z" fill="${fill}"/>${[0, 1, 2]
+      .map((k) => `<circle cx="${ix + 9 + k * 11}" cy="${top + 7 + (k % 2) * 4}" r="1.3" fill="#8a5a2b"/>`)
+      .join("")}`;
+    const shell = `M${x} ${y + 8} Q${x} ${y} ${x + w / 2} ${y} Q${x + w} ${y} ${x + w} ${y + 8} V${y + h} L${x + w / 2 + 6} ${y + h + 12} H${x + w / 2 - 6} L${x} ${y + h}Z`;
+    return `${room}
+      <path d="M${x + 3} ${y + h} L${x - 4} 80 M${x + w - 3} ${y + h} L${x + w + 4} 80" stroke="#7b8794" stroke-width="4"/>
+      <defs><clipPath id="tk${uid}"><path d="${shell}"/></clipPath></defs>
+      <path d="${shell}" fill="${body[0]}" stroke="${body[1]}" stroke-width="2"/>
+      <g clip-path="url(#tk${uid})">${pile}</g>
+      <rect x="${x + w / 2 - 4}" y="${y + h + 12}" width="8" height="8" fill="${body[1]}"/>
+      <path d="M${x} ${y + h} H${x + w}" stroke="${body[1]}" stroke-width="1.5"/>`;
+  }
+  if (type === "water") {
+    // The cistern: a ribbed tank on its slab, the downpipe from the gutter into its lid, a tap near the bottom.
+    const [x, y, w, h] = [72, 18, 72, 54];
+    const [ix, iy, iw, ih] = [x + 2, y + 2, w - 4, h - 4];
+    const top = iy + ih * (1 - s);
+    const ribs = [y + 14, y + 27, y + 40].map((ry) => `<line x1="${x}" y1="${ry}" x2="${x + w}" y2="${ry}"/>`).join("");
+    return `${room}
+      <path d="M${x + 14} 0 V${y - 2}" stroke="${body[1]}" stroke-width="5" fill="none"/>
+      <rect x="${x - 6}" y="${y + h}" width="${w + 12}" height="8" fill="#9aa1a9"/>
+      <defs><clipPath id="tk${uid}"><rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" rx="6"/></clipPath></defs>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${body[0]}" stroke="${body[1]}" stroke-width="2"/>
+      <g clip-path="url(#tk${uid})">${liquid(ix, iw, top, iy + ih)}</g>
+      <g stroke="${body[1]}" stroke-width="1.2" opacity=".7">${ribs}</g>
+      <rect x="${x + 8}" y="${y - 4}" width="${w - 16}" height="5" rx="2" fill="${body[1]}"/>
+      <path d="M${x + w} ${y + h - 10} h7 v4" stroke="${body[1]}" stroke-width="3" fill="none"/>`;
+  }
+  // Heating oil and propane: the tank lying on its two feet, its filler cap and its gauge.
   const [x, y, w, h] = [50, 22, 96, 46];
   const [ix, iy, iw, ih] = [x + 2, y + 2, w - 4, h - 4];
   const top = iy + ih * (1 - s);
-  const fill = share == null ? (night ? "#4a515b" : "#d5dae1") : TK_FILL[type];
-  const liquid = type !== "pellets";
-  const wave = `M${ix - 10} ${top} q12 -2.5 24 0 t24 0 t24 0 t24 0 t24 0 V${iy + ih + 4} H${ix - 10}Z`;
-  const sway = animate && liquid && share != null ? `<animateTransform attributeName="transform" type="translate" values="0 0;-12 0;0 0" dur="${TK_LOOP}s" repeatCount="indefinite"/>` : "";
-  // The pellets: a pile, its top a little higher in the middle.
-  const content = liquid
-    ? `<path d="${wave}" fill="${fill}" opacity=".92">${sway}</path>`
-    : `<path d="M${ix} ${top + 4} Q${ix + iw / 2} ${top - 4} ${ix + iw} ${top + 4} V${iy + ih + 2} H${ix}Z" fill="${fill}"/>${[0, 1, 2, 3, 4, 5]
-        .map((k) => `<circle cx="${ix + 10 + k * 14}" cy="${top + 8 + (k % 2) * 4}" r="1.3" fill="#8a5a2b"/>`)
-        .join("")}`;
   const angle = -120 + 240 * s;
-  const rows = [20, 32, 44, 56, 68].map((ly) => `<line x1="0" y1="${ly}" x2="200" y2="${ly}"/>`).join("");
-  return `<rect width="200" height="80" fill="${wall}"/><g stroke="${joint}" stroke-width=".8">${rows}</g>
-    <rect x="8" y="8" width="30" height="24" rx="2" fill="${night ? "#1d2a3a" : "#fff"}" stroke="${night ? "#555b63" : "#c9ced6"}"/><line x1="23" y1="8" x2="23" y2="32" stroke="${night ? "#555b63" : "#c9ced6"}"/>
+  return `${room}
     <rect x="66" y="66" width="6" height="14" fill="#7b8794"/><rect x="124" y="66" width="6" height="14" fill="#7b8794"/>
     <defs><clipPath id="tk${uid}"><rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" rx="${ih / 2}"/></clipPath></defs>
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${body[0]}" stroke="${body[1]}" stroke-width="2"/>
-    <g clip-path="url(#tk${uid})">${content}</g>
+    <g clip-path="url(#tk${uid})">${liquid(ix, iw, top, iy + ih)}</g>
     <rect x="${x + 40}" y="${y - 8}" width="16" height="9" rx="2" fill="${body[1]}"/>
     <circle cx="${x + 48}" cy="${y + 23}" r="9" fill="${night ? "#2c3034" : "#fff"}" stroke="${body[1]}"/>
     <path d="M${x + 48} ${y + 23} v-7" stroke="#e8590c" stroke-width="2" stroke-linecap="round" transform="rotate(${angle.toFixed(1)} ${x + 48} ${y + 23})"/>`;
