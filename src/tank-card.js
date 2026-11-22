@@ -339,9 +339,10 @@ class TankCard extends RcCard {
     return this._tn("days", n, { n: this._fmt(n, 0) });
   }
 
+  // The quantity left and the days left (or the level); on a narrow card the quantity is left out, never the days cut.
   _sub(m) {
     if (m.none || m.state === "offline") return "";
-    return [this._qty(m.volume, m.type), m.daysLeft != null ? this._left(m) : this._pct(m)].join(" · ");
+    return `<span class="sq">${rcEsc(this._qty(m.volume, m.type))} · </span>${rcEsc(m.daysLeft != null ? this._left(m) : this._pct(m))}`;
   }
 
   // The days left, big, and the quantity left of the capacity.
@@ -425,7 +426,7 @@ class TankCard extends RcCard {
     const parts = [m.state, m.id, m.type, m.share, m.capacity, m.use, m.trend, m.daysLeft, m.orderDays, m.delivery, m.days, new Date(m.now).toDateString(), this._night(), this._dark()];
     if (!this._changed(parts)) return;
     const sub = this._sub(m);
-    const subHtml = c.show_subtitle !== false && sub ? `<div class="subt">${rcEsc(sub)}</div>` : "";
+    const subHtml = c.show_subtitle !== false && sub ? `<div class="subt">${sub}</div>` : "";
     const head =
       c.illustration !== false
         ? this._banner(m, subHtml, "", m.none ? "" : status)
@@ -555,7 +556,7 @@ class TankCard extends RcCard {
     ha-card.bn > .banner { margin: 0; --sw: min(200px, 46%); }
     /* Narrower cards: the room is drawn smaller (75 %, 62 %, then 50 % of its height, its left part cropped). */
     @container (max-width: 420px) { .banner, ha-card.bn > .banner { --sw: 150px; --sk: .75; } }
-    @container (max-width: 340px) { .banner, ha-card.bn > .banner { --sw: 112px; --sk: .62; } .banner .room .win { display: none; } }
+    @container (max-width: 340px) { .banner, ha-card.bn > .banner { --sw: 112px; --sk: .62; } .banner .room .win, .banner .subt .sq { display: none; } }
     @container (max-width: 260px) { .banner, ha-card.bn > .banner { --sw: 70px; --sk: .5; } }
     /* The chips that do not fit wrap to a second line, hidden: never a chip cut to "R…". */
     .banner .rs { display: flex; flex-wrap: wrap; gap: 4px; height: 20px; margin: 3px 0 0 -2px; min-width: 0; overflow: hidden; }

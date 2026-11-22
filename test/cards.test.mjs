@@ -117,7 +117,7 @@ test("full card: the days left, the runway with the date to order by, the tiles 
   assert.match(html, /class="banner"/);
   assert.match(html, /<span class="bpt">Good<\/span>/);
   assert.match(html, /<div class="title">Heating oil<\/div>/);
-  assert.match(html, /<div class="subt">1,479 L · 41 days left<\/div>/);
+  assert.match(html, /<div class="subt"><span class="sq">1,479 L · <\/span>41 days left<\/div>/);
   assert.match(html, /<b>41<\/b><span>days left<\/span><span class="of">1,479 L of 3,000 L<\/span>/);
   assert.match(html, /class="om" style="left:4\d\.\d%"/);
   assert.match(html, /class="dz"/);
