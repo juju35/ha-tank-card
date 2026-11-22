@@ -117,6 +117,7 @@ const tkIcon = (d) =>
 const TK_SVG = {
   level: '<path d="M6 3h12v18H6z"/><path d="M6 13h12"/>',
   use: '<path d="M12 3c.8 3 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2.3 1.2-3.6 2.3-4.5 0 1.8.9 3 2.2 3.2-.4-3-1-5.5 0-8.2z"/>',
+  drop: '<path d="M12 3c3 4 6 7.2 6 10.5a6 6 0 0 1-12 0C6 10.2 9 7 12 3z"/>',
   date: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
 };
 
@@ -392,7 +393,9 @@ class TankCard extends RcCard {
     const tile = (icon, label, value, small, sub, id) =>
       `<button class="xt"${id ? ` data-id="${rcEsc(id)}"` : ""}><span class="xh">${tkIcon(TK_SVG[icon])}<span class="xl">${rcEsc(this._t(label))}</span></span><span class="xv">${rcEsc(value)}${small ? `<small>${rcEsc(small)}</small>` : ""}</span>${sub ? `<span class="xs">${rcEsc(sub)}</span>` : ""}</button>`;
     const trend = m.trend != null && Math.round(m.trend * 100) !== 0 ? this._t("vs_week", { v: `${m.trend >= 0 ? "+" : "−"}${this._fmt(Math.abs(m.trend) * 100, 0)} %` }) : "";
-    const use = m.use != null ? tile("use", "t_use", this._fmt(m.use, m.use < 10 ? 1 : 0), this._t("per_day", { u: unit }), trend, m.useId) : tile("use", "t_use", "—", "", "", m.useId);
+    // The use's icon: a flame for a fuel, a drop for rainwater.
+    const icon = m.water ? "drop" : "use";
+    const use = m.use != null ? tile(icon, "t_use", this._fmt(m.use, m.use < 10 ? 1 : 0), this._t("per_day", { u: unit }), trend, m.useId) : tile(icon, "t_use", "—", "", "", m.useId);
     const date =
       m.orderDays != null
         ? tile("date", "t_order", this._date(m.now + m.orderDays * TK_DAY), "", this._in(m.orderDays))
