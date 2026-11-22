@@ -625,10 +625,10 @@ class TankMiniCard extends rcMini(
       : m.state === "offline"
         ? ""
         : [chip(`${this._qty(m.volume, m.type)} · ${this._pct(m)}`), m.daysLeft != null && chip(this._left(m))].filter(Boolean).join("");
-    // The ring around the badge: the level.
+    // The ring around the badge: the level (no arc at 0 %: a round cap alone would draw a dot).
     const pct = m.share == null ? 0 : m.share * 100;
     const L = 2 * Math.PI * 17;
-    const ring = `<svg class="ringb" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="color-mix(in srgb, var(--c) 18%, transparent)" stroke-width="4"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${((L * pct) / 100).toFixed(1)} 999" transform="rotate(-90 20 20)"/></svg>`;
+    const ring = `<svg class="ringb" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="color-mix(in srgb, var(--c) 18%, transparent)" stroke-width="4"/>${pct > 0 ? `<circle cx="20" cy="20" r="17" fill="none" stroke="var(--c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${((L * pct) / 100).toFixed(1)} 999" transform="rotate(-90 20 20)"/>` : ""}</svg>`;
     const c = this._config;
     this.shadowRoot.innerHTML = `<style>${RC_BASE_STYLES}${this.constructor.styles}</style>
       <ha-card class="lvl-${m.state} bn${this._dark() ? " dk" : ""}">${this._banner(m, chips ? `<div class="rs">${chips}</div>` : "", ring, m.none ? "" : status)}</ha-card>`;
