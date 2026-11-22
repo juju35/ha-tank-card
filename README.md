@@ -38,7 +38,7 @@ An illustrated Lovelace card for **tank levels** — heating oil, propane, rainw
 - **Level, use, order by**: three tiles; the use with its trend against the week before; for rainwater, the day it is empty instead of an order
 - **Last 30 days**: the use of each day, the refills marked
 - **Any level sensor**: a share in %, a volume (L, m³, gal), a mass (kg, t, lb) or the distance from the top of the tank to the surface (cm, mm, m, in) with `height`
-- **Heating oil, propane, rainwater or pellets** (`tank_type`, else from the sensor's name, platform and unit: a mass is pellets), each with its colour and its default capacity
+- **Heating oil, propane, rainwater or pellets** (`tank_type`, else from the sensor's name, platform and unit: a mass is pellets; *propane*, *LPG*, *GPL* or *Mopeka* is propane, never a mere *gas*), each with its colour, its default capacity and its own tank in the header: a tank on its feet with its gauge for oil and propane, a silo for pellets, a cistern for rainwater
 - **The use**: a daily use sensor (`consumption`), else the recorder's daily statistics of the level over 30 days (a rise of more than 3 % of the tank is a refill, not a use); the integration's own days left (`days_left`, OilFox's) wins when set
 - **Status**: good, order soon (the order day within 14 days), order now (at the reorder level, or the order day reached), almost empty (under 5 %); rainwater: good or running low
 - **Illustrated header**: the tank lying in its boiler room, filled to its level with what it holds, its gauge's needle at the level, the surface of a liquid swaying; the dark theme darkens the room
@@ -167,11 +167,12 @@ capacity: 500
 
 ## How it works
 
-- **Tank**: `entity`, else the first sensor named like a tank level (*tank*, *cuve*, *silo*, *OilFox*, *Mopeka*, *level*…) in %, L, m³, kg, cm or mm, not a battery or a signal
+- **Tank**: `entity`, else the first sensor named like a tank level (*tank*, *cuve*, *silo*, *OilFox*, *Mopeka*, *level*…) in %, L, m³, gal, kg, t, cm or mm (exactly), not a battery or a signal
 - **Level**: % as is; a volume or a mass against `capacity`; a distance from the top against `height` (the air above the surface)
 - **Use**: `consumption`, else the average daily fall of the level over the last 14 days without a refill, from the recorder's daily means (`recorder/statistics_during_period`, period `day`) over 31 days, fetched at first, every hour and on a new day; the level sensor needs a `state_class` for the recorder to keep its statistics
 - **Days left**: `days_left`, else the quantity left divided by the use
 - **Order by**: the earlier of the day the delivery time before the tank is empty and the day the level reaches `reorder_level`; no order for rainwater
+- **Refresh**: the card redraws on each change of its sensors; the level's history is fetched again every hour and on a new day
 - **Read only**: the card calls no action
 
 ## Development
