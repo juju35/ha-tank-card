@@ -71,6 +71,18 @@ test("detection: a gas meter is no propane tank, and only a tank's units count",
   assert.ok(ids.includes("sensor.lpg_tank_level"));
 });
 
+test("plurals: the Slovenian dual, and a label around its number whatever its side", async () => {
+  const hass = makeHass({ now: NOW });
+  const card = await make("tank-card", { ...OIL, language: "sl" }, hass);
+  assert.equal(card._tn("days", 2), "Ostajata 2 dneva");
+  assert.equal(card._tn("days", 3), "Ostajajo 3 dnevi");
+  assert.equal(card._tn("days", 102), "Ostajata 102 dneva");
+  assert.equal(card._tn("days", 1500, { n: "1.500" }), "Ostaja 1.500 dni", "a formatted number");
+  const es = await make("tank-card", { ...OIL, language: "es" }, hass);
+  const html = es._big({ ...es._items, daysLeft: 41 });
+  assert.match(html, /<span>Quedan<\/span><b>41<\/b><span>días<\/span>/);
+});
+
 test("the use: each day's fall, a rise is a refill; the average without the refills", () => {
   const rows = [100, 90, 80, 95, 85, 75].map((mean, i) => ({ start: i, mean }));
   const days = tk.tkDays(rows, (v) => v * 10, 1000);
