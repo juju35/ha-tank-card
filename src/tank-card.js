@@ -348,8 +348,10 @@ class TankCard extends RcCard {
     const of = `<span class="of">${rcEsc(this._t("of_total", { v: this._qty(m.volume, m.type), t: this._qty(m.capacity, m.type) }))}</span>`;
     if (m.daysLeft == null) return `<button class="big" data-id="${rcEsc(m.id)}"><b>${rcEsc(this._pct(m))}</b><span>${rcEsc(this._t("t_level"))}</span>${of}</button>`;
     const n = Math.round(m.daysLeft);
-    const label = this._left(m).replace(this._fmt(n, 0), "").trim();
-    return `<button class="big" data-id="${rcEsc(m.id)}"><b>${rcEsc(this._fmt(n, 0))}</b><span>${rcEsc(label)}</span>${of}</button>`;
+    // The label around the number, cut on a marker in place of {n}: whatever the language puts on either side.
+    const [before, after] = this._t(rcPluralKey(TK_I18N, this._lang(), "days", n), { n: "\u0000" }).split("\u0000");
+    const label = (t) => (t.trim() ? `<span>${rcEsc(t.trim())}</span>` : "");
+    return `<button class="big" data-id="${rcEsc(m.id)}">${label(before)}<b>${rcEsc(this._fmt(n, 0))}</b>${label(after)}${of}</button>`;
   }
 
   // The runway from today to empty: the day to order by, the delivery time after it.
