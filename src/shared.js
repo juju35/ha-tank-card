@@ -1830,10 +1830,10 @@ const rcT = (i18n, lang, key, vars = {}) => {
   return s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
 };
 
-// Plural key for `n` items: `<base>_one`, `<base>_two`, `<base>_few` or `<base>_many` (the "other" form), from the CLDR
-// category of `n` in `lang` (Serbian 1 / 2-4 / 5+, 21 / 22…; Slovenian's dual 2, 102…). `_two` and `_few` are optional:
-// without `_two` the dual takes `_few`, without `_few`, `_many` is used. A `_one` text without {n} ("Turn this plug
-// off?") only means exactly one.
+// Plural key for `n` items: `<base>_one`, `_zero`, `_two`, `_few` or `_many` (the "other" form), from the CLDR category
+// of `n` in `lang` (Serbian 1 / 2-4 / 5+, 21 / 22…; Slovenian's dual 2, 102…; Latvian's zero 0, 10-20…). `_zero`, `_two`
+// and `_few` are optional: without `_two` the dual takes `_few`; without `_few` or `_zero`, `_many` is used. A `_one`
+// text without {n} ("Turn this plug off?") only means exactly one.
 const rcPluralKey = (i18n, lang, base, n) => {
   let cat;
   try {
@@ -1843,10 +1843,11 @@ const rcPluralKey = (i18n, lang, base, n) => {
   }
   const text = (k) => i18n[lang]?.[k] ?? RC_I18N[lang]?.[k];
   if (cat === "one" && (n === 1 || text(`${base}_one`)?.includes("{n}"))) return `${base}_one`;
-  if (cat === "two" && text(`${base}_two`) != null) return `${base}_two`;
+  if ((cat === "two" || cat === "zero") && text(`${base}_${cat}`) != null) return `${base}_${cat}`;
   if ((cat === "few" || cat === "two") && text(`${base}_few`) != null) return `${base}_few`;
   return `${base}_many`;
 };
+
 
 const rcEsc = (s) =>
   String(s ?? "").replace(
@@ -1978,7 +1979,8 @@ class RcCard extends HTMLElement {
     return rcT(this.constructor.i18n, this._lang(), key, vars);
   }
 
-  // `<base>_one` / `_two` / `_few` / `_many` for `n`, with {n} filled in (with `vars.n`, a formatted number, when given).
+  // `<base>_one` / `_zero` / `_two` / `_few` / `_many` for `n`, with {n} filled in (with `vars.n`, a formatted number,
+  // when given).
   _tn(base, n, vars) {
     return this._t(rcPluralKey(this.constructor.i18n, this._lang(), base, n), { n, ...vars });
   }
