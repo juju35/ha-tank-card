@@ -440,7 +440,7 @@ const RC_I18N = {
 const TK_TYPES = ["oil", "propane", "water", "pellets"];
 const TK_TYPE_NAMES = {
   oil: /oil|fioul|fuel|mazout|heiz|gasoil|oilfox|smartoil/i,
-  propane: /propane|propan|lpg|gpl|gas|mopeka/i,
+  propane: /propane|propan|lpg|gpl|mopeka/i,
   water: /water|eau|rain|pluie|regen|cistern|citerne/i,
   pellets: /pellet|granul|silo|wood|bois/i,
 };
@@ -474,13 +474,16 @@ const tkType = (hass, id, configured) => {
   return TK_TYPES.find((t) => TK_TYPE_NAMES[t].test(label)) || "oil";
 };
 
+// The units a tank level sensor is read in: a share, a volume, a mass, a distance from the top (exact, so "mL" or "lm"
+// never pass).
+const TK_UNITS = new Set(["%", "L", "l", "m³", "m3", "gal", "kg", "t", "cm", "mm"]);
 // The tank level sensors of the home, most likely first: for the card picker's first config.
 const tkSources = (hass) =>
   Object.keys(hass.states || {}).filter((id) => {
     if (!id.startsWith("sensor.")) return false;
     const st = hass.states[id];
     const label = `${id} ${st.attributes?.friendly_name || ""} ${hass.entities?.[id]?.platform || ""}`;
-    return /tank|cuve|citerne|silo|oilfox|mopeka|level|niveau|fill/i.test(label) && /%|L|m³|kg|cm|mm/.test(st.attributes?.unit_of_measurement || "") && !/battery|batterie|signal|rssi/i.test(label);
+    return /tank|cuve|citerne|silo|oilfox|mopeka|level|niveau|fill/i.test(label) && TK_UNITS.has(String(st.attributes?.unit_of_measurement ?? "").trim()) && !/battery|batterie|signal|rssi/i.test(label);
   });
 
 // Each day's use and refill, from the daily mean levels ([{ start, mean }], oldest first) turned into volumes: a fall is

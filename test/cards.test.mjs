@@ -56,6 +56,21 @@ test("the type: configured, else from the name, the platform and the unit", () =
   assert.deepEqual(json(cards["tank-card"].getStubConfig(h)), { entity: "sensor.oilfox_fill_level" });
 });
 
+test("detection: a gas meter is no propane tank, and only a tank's units count", () => {
+  const h = makeHass({ now: NOW });
+  const add = (id, state, attrs) => (h.states[id] = { entity_id: id, state, attributes: attrs });
+  add("sensor.gas_tank_level", "40", { unit_of_measurement: "%", friendly_name: "Gas tank level" });
+  assert.equal(tk.tkType(h, "sensor.gas_tank_level"), "oil", "\"gas\" alone is not propane");
+  add("sensor.lpg_tank_level", "40", { unit_of_measurement: "%", friendly_name: "LPG tank level" });
+  assert.equal(tk.tkType(h, "sensor.lpg_tank_level"), "propane");
+  add("sensor.tank_light_level", "300", { unit_of_measurement: "lm", friendly_name: "Tank light level" });
+  add("sensor.tank_dose_level", "5", { unit_of_measurement: "mL", friendly_name: "Tank dose level" });
+  const ids = tk.tkSources(h);
+  assert.ok(!ids.includes("sensor.tank_light_level"), "lm");
+  assert.ok(!ids.includes("sensor.tank_dose_level"), "mL");
+  assert.ok(ids.includes("sensor.lpg_tank_level"));
+});
+
 test("the use: each day's fall, a rise is a refill; the average without the refills", () => {
   const rows = [100, 90, 80, 95, 85, 75].map((mean, i) => ({ start: i, mean }));
   const days = tk.tkDays(rows, (v) => v * 10, 1000);
