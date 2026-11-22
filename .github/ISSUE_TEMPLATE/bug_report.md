@@ -24,7 +24,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment:**
 - Home Assistant version:
 - Browser:
-- HACS version:
+- Marketplace version:
 - Card version:
 - Card (tank-card or tank-mini-card):
 - Level sensor (integration, unit, tank type):
