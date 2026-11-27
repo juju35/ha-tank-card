@@ -1,6 +1,6 @@
 {
   "name": "ha-tank-card",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An illustrated Lovelace card for Home Assistant tank levels (heating oil, propane, rainwater, pellets): days left, the date to order by, the use and the last 30 days.",
   "repository": {
     "type": "git",
